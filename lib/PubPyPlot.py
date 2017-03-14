@@ -81,7 +81,7 @@ class PubPyPlot(object):
         """show the plot"""
         plt.show()
         
-    def format_axes(self, ax):
+    def formatAxes(self, ax):
         """formats the axis
                 - tick marks
                 - tick position

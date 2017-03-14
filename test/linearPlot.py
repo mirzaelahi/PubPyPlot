@@ -11,7 +11,7 @@ sys.path.append('../lib/')  # appending the path to PubPyPlot
 from PubPyPlot import PubPyPlot
 
 pub = PubPyPlot()
-pub.format_axes(pub.getAxis())
+pub.formatAxes(pub.getAxis())
 
 x = np.arange(1, 100, 1)
 y = np.arange(1, 100, 1)
