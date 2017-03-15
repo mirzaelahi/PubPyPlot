@@ -48,17 +48,46 @@ class PubPyPlot(object):
         else:
             self.figHeight = height
             
+        self.plotCount = 0
+            
         self.labelFontSize = 8
         self.tickFontSize = 8
         self.legend_lw = 2.5/2
         self.lw = 2.5
-        self.SPINE_COLOR = '#424242'
-        self.tickWidth = 0.5
-        self.tickLength = 4
+        self.axesColor = '#424242'
+        self.majorTickWidth = 0.5
+        self.majorTickLength = 3
+        self.minorTickLength = 2.5
+        self.axesLineWidth = 0.5
+        self.axesLabelpad = 4
         
         self.fig = plt.figure(figsize=(self.figWidth, self.figHeight))
         self.ax = self.fig.add_subplot(111)
+        
+        self.legendLineLength = 1.5
+        self.legendLineWidth = 0.8*self.lw
+        self.legendNumPoints = 1
+        self.legendLabelSpacing = 0.5
+        self.legendBorderaxespad = 0.5
+        self.legendHandleTextPad = 0.5
+        self.legendBorderPad = 0.4
+        self.legendText = ''
+        self.legendHandleHeight = 0.1
+        
+        self.colorPallete = ['#d73027',     #red
+                             '#4575b4',     #blue
+                             '#fc8d59',     #orange
+                             '#fee090',     #yellow
+                             '#e0f3f8',     #skyblue
+                             '#91bfdb'      #lightblue
+                             ]
+        
+        self.plotList = []
+        
         #self.fig.subplots_adjust(left=0.2, bottom=0.2)
+        self.updateRcParams()
+        
+    def updateRcParams(self):
         params = {'text.latex.preamble': ['\usepackage{amsmath}'],
                       'axes.labelsize': self.labelFontSize, 
                       'axes.titlesize': self.labelFontSize,
@@ -66,9 +95,8 @@ class PubPyPlot(object):
                       'legend.fontsize': self.labelFontSize,
                       'xtick.labelsize': self.tickFontSize,
                       'ytick.labelsize': self.tickFontSize,
-                      'font.family': 'serif',
-                      'mathtext.default': 'regular'
-            }        
+                      'axes.labelpad'  : self.axesLabelpad, 
+                      'mathtext.default': 'regular'}        
         rcParams.update(params)
         
     def getAxis(self):
@@ -77,7 +105,10 @@ class PubPyPlot(object):
         
     def plot(self, x, y):
         """plot x vs y"""
-        plt.plot(x, y, lw=self.lw)
+        tempPlot, = plt.plot(x, y, lw=self.lw, 
+                             color=self.colorPallete[self.plotCount])
+        self.plotCount += 1
+        self.plotList.append(tempPlot)
         
     def show(self):
         """show the plot"""
@@ -92,14 +123,14 @@ class PubPyPlot(object):
         #    ax.spines[spine].set_visible(False)
     
         for spine in ['left', 'bottom', 'top', 'right']:
-            ax.spines[spine].set_color(self.SPINE_COLOR)
-            ax.spines[spine].set_linewidth(0.5)
+            ax.spines[spine].set_color(self.axesColor)
+            ax.spines[spine].set_linewidth(self.axesLineWidth)
     
         ax.xaxis.set_ticks_position('bottom')
         ax.yaxis.set_ticks_position('left')
     
         for axis in [ax.xaxis, ax.yaxis]:
-            axis.set_tick_params(direction='in', color=self.SPINE_COLOR)
+            axis.set_tick_params(direction='in', color=self.axesColor)
     
         return ax
         
@@ -118,8 +149,8 @@ class PubPyPlot(object):
     def setTick( self, tickLength=None, tickWidth=None, majorDx=None, 
                 majorDy=None, minorDx=None, minorDy=None, tickFontsize=None ):
         """modify ticks"""
-        tickLength = tickLength or self.tickLength
-        tickWidth = tickWidth or self.tickWidth
+        tickLength = tickLength or self.majorTickLength
+        tickWidth = tickWidth or self.majorTickWidth
         tickFontsize = tickFontsize or self.tickFontSize
         # Tick Size
         self.ax.xaxis.set_tick_params(length=tickLength, width=tickWidth, 
@@ -127,11 +158,11 @@ class PubPyPlot(object):
         self.ax.yaxis.set_tick_params(length=tickLength, width=tickWidth, 
                                       labelsize=tickFontsize)
         self.ax.xaxis.set_tick_params(which='minor', length=0.7*tickLength, 
-                                      width=0.8*tickWidth)
+                                      width=0.83*tickWidth)
         self.ax.yaxis.set_tick_params(which='minor', length=0.7*tickLength, 
                                       width=tickWidth)
         self.ax.xaxis.set_tick_params(which='major', length=tickLength, 
-                                      width=0.8*tickWidth)
+                                      width=0.83*tickWidth)
         self.ax.yaxis.set_tick_params(which='major', length=tickLength, 
                                       width=tickWidth)
         # Major Tick location                              
@@ -150,3 +181,25 @@ class PubPyPlot(object):
         if minorDy is not None:
             mly = MultipleLocator(minorDy)
             self.ax.yaxis.set_minor_locator(mly)
+            
+    def legend(self, legendText, loc='upper right', frameon=False, fancybox=False,
+               shadow = False):
+        self.legendText = legendText
+        self.legend = self.ax.legend(self.plotList, legendText,
+                                     loc=loc, 
+                                     borderaxespad=self.legendBorderaxespad, 
+                                     shadow=shadow, 
+                                     labelspacing=self.legendLabelSpacing, 
+                                     borderpad=self.legendBorderPad, 
+                                     fancybox=fancybox, 
+                                     handletextpad=self.legendHandleTextPad, 
+                                     frameon=frameon, 
+                                     numpoints=self.legendNumPoints, 
+                                     handlelength=self.legendLineLength,
+                                     handleheight=self.legendHandleHeight)
+                                     
+        self.legend.get_frame().set_linewidth(self.axesLineWidth)
+        self.legend.get_frame().set_edgecolor(self.axesColor)
+        
+        for legobj in self.legend.legendHandles:
+            legobj.set_linewidth(self.legendLineWidth)
