@@ -47,6 +47,7 @@ class PubPyPlot(object):
             self.figHeight = self.figWidth * self.goldenMean
         else:
             self.figHeight = height
+            
         self.labelFontSize = 8
         self.tickFontSize = 8
         self.legend_lw = 2.5/2
@@ -59,16 +60,17 @@ class PubPyPlot(object):
         self.ax = self.fig.add_subplot(111)
         #self.fig.subplots_adjust(left=0.2, bottom=0.2)
         params = {'text.latex.preamble': ['\usepackage{amsmath}'],
-                      'axes.labelsize': self.labelFontSize, # fontsize for x and y labels (was 10)
+                      'axes.labelsize': self.labelFontSize, 
                       'axes.titlesize': self.labelFontSize,
-                      'font.size': self.labelFontSize, # was 10
-                      'legend.fontsize': self.labelFontSize, # was 10
+                      'font.size': self.labelFontSize,
+                      'legend.fontsize': self.labelFontSize,
                       'xtick.labelsize': self.tickFontSize,
                       'ytick.labelsize': self.tickFontSize,
                       'font.family': 'serif',
                       'mathtext.default': 'regular'
             }        
         rcParams.update(params)
+        
     def getAxis(self):
         """returns axis"""
         return self.ax
@@ -113,20 +115,38 @@ class PubPyPlot(object):
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         
-    def setTickSize( self, length=None, width=None, dx=None, dy=None, fontsize=None ):
+    def setTick( self, tickLength=None, tickWidth=None, majorDx=None, 
+                majorDy=None, minorDx=None, minorDy=None, tickFontsize=None ):
         """modify ticks"""
-        length = length or self.tickLength
-        width = width or self.tickWidth
-        fontsize = fontsize or self.tickFontSize
+        tickLength = tickLength or self.tickLength
+        tickWidth = tickWidth or self.tickWidth
+        tickFontsize = tickFontsize or self.tickFontSize
         # Tick Size
-        self.ax.xaxis.set_tick_params(length=length, width=width, labelsize=fontsize)
-        self.ax.yaxis.set_tick_params(length=length, width=width, labelsize=fontsize)
-        self.ax.xaxis.set_tick_params(which='minor', length=length/2.0, width=0.8*width)
-        self.ax.yaxis.set_tick_params(which='minor', length=length/2.0, width=0.8*width)
-        if dx is not None:
+        self.ax.xaxis.set_tick_params(length=tickLength, width=tickWidth, 
+                                      labelsize=tickFontsize)
+        self.ax.yaxis.set_tick_params(length=tickLength, width=tickWidth, 
+                                      labelsize=tickFontsize)
+        self.ax.xaxis.set_tick_params(which='minor', length=0.7*tickLength, 
+                                      width=0.8*tickWidth)
+        self.ax.yaxis.set_tick_params(which='minor', length=0.7*tickLength, 
+                                      width=tickWidth)
+        self.ax.xaxis.set_tick_params(which='major', length=tickLength, 
+                                      width=0.8*tickWidth)
+        self.ax.yaxis.set_tick_params(which='major', length=tickLength, 
+                                      width=tickWidth)
+        # Major Tick location                              
+        if majorDx is not None:
             # Minor Tick
-            mlx = MultipleLocator(dx)
+            Mlx = MultipleLocator(majorDx)
+            self.ax.xaxis.set_major_locator(Mlx)
+        if majorDy is not None:
+            Mly = MultipleLocator(majorDy)
+            self.ax.yaxis.set_major_locator(Mly)
+        # Minor Tick location                              
+        if minorDx is not None:
+            # Minor Tick
+            mlx = MultipleLocator(minorDx)
             self.ax.xaxis.set_minor_locator(mlx)
-        if dy is not None:
-            mly = MultipleLocator(dy)
+        if minorDy is not None:
+            mly = MultipleLocator(minorDy)
             self.ax.yaxis.set_minor_locator(mly)
