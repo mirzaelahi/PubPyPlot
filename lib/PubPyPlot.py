@@ -36,17 +36,28 @@ import argparse
 import scipy.io as sio
 
 class PubPyPlot(object):
-    def __init__(self, height = None, width = None):
+    def __init__(self, height = None, width = None, ratio=None):
         """constructor of the class"""
-        if width is None:
-            self.figWidth = 3.39
-        else:
-            self.figWidth = width
         self.goldenMean = ( np.sqrt(5) - 1.0 )/2.0
-        if height is None:
+        if ratio==21:
+            self.figWidth = 3.39
             self.figHeight = self.figWidth * self.goldenMean
-        else:
-            self.figHeight = height
+        elif ratio==12:
+            self.figWidth = 3.39
+            self.figHeight = self.figWidth * self.goldenMean
+            self.figWidth = 3.39/2.0
+        elif ratio==11:
+            self.figWidth = 3.39/2
+            self.figHeight = 3.39/2
+        if ratio is None and width is None:
+            self.figWidth = 3.39
+            #else:
+            #self.figWidth = width
+    
+        if ratio is None and height is None:
+            self.figHeight = self.figWidth * self.goldenMean
+        #else:
+        #    self.figHeight = height
             
         self.plotCount = 0
         self.totalPlotProvision = 6   
@@ -66,8 +77,8 @@ class PubPyPlot(object):
         self.fig = plt.figure(figsize=(self.figWidth, self.figHeight))
         self.ax = self.fig.add_subplot(111)
         
-        self.legendLineLength = 1.5
-        self.legendLineWidth = 1.5*np.ones(self.totalPlotProvision)
+        self.legendLineLength = 2.5
+        self.legendLineWidth = 1*np.ones(self.totalPlotProvision)
         self.legendNumPoints = 1
         self.legendLabelSpacing = 0.5
         self.legendBorderaxespad = 0.5
@@ -75,7 +86,7 @@ class PubPyPlot(object):
         self.legendBorderPad = 0.4
         self.legendText = ''
         self.legendHandleHeight = 0.5
-        self.legendBbox_to_anchor = (0., 0., 0., 0.) 
+        self.legendBbox_to_anchor = (1., 1.)
         self.markerAlpha = 1.
         self.markerEdgeWidth = 0.5*np.ones(self.totalPlotProvision)
         
@@ -126,9 +137,9 @@ class PubPyPlot(object):
         """returns axis"""
         return self.ax
         
-    def plot(self, x, y, lw=None, color=None, marker=None, ms=None, 
+    def plot(self, x, y, lw=None, color=None, marker=None, ms=None,
              markevery=None, markeredgecolor=None, markerfacecolor=None, 
-                 markeredgewidth=None, ls='-'):
+                 markeredgewidth=None, ls='-', zOrder=1):
         """plot x vs y"""
         color = color or self.color[self.plotCount]
         ms = ms or self.markerSize[self.plotCount]
@@ -144,10 +155,11 @@ class PubPyPlot(object):
                              markeredgecolor=markeredgecolor,
                              markerfacecolor=markerfacecolor,
                              markeredgewidth = markeredgewidth,
-                             ls=ls)
+                             ls=ls,
+                             zorder=zOrder)
         self.plotCount += 1
         self.plotList.append(tempPlot)
-        
+        return tempPlot
     def show(self):
         """show the plot"""
         plt.show()
@@ -222,15 +234,15 @@ class PubPyPlot(object):
             mly = MultipleLocator(minorDy)
             self.ax.yaxis.set_minor_locator(mly)
             
-    def legend(self, legendText, bbox_to_anchor=None, loc='upper right', 
+    def legend(self, legendText,  handle=None, bbox_to_anchor=None, loc='upper right', 
                frameon=False, fancybox=False, shadow = False, ncol=1,
                mode=None, handletextpad=None):
         self.legendText = legendText
-        bbox_to_anchor = bbox_to_anchor or self.legendBbox_to_anchor
+        handle = handle or self.plotList
         handletextpad = handletextpad or self.legendHandleTextPad
-        self.legend = self.ax.legend(self.plotList, legendText,
+        self.legend = self.ax.legend(handle, legendText,
+                                     loc=loc,
                                      bbox_to_anchor = bbox_to_anchor,
-                                     loc=loc, 
                                      borderaxespad=self.legendBorderaxespad, 
                                      shadow=shadow, 
                                      labelspacing=self.legendLabelSpacing, 
@@ -250,7 +262,7 @@ class PubPyPlot(object):
         for legobj in self.legend.legendHandles:
             legobj.set_linewidth(self.legendLineWidth[tempCount])
             tempCount += 1
-            
+        return self.legend   
     def setTickLabel(self, xTickLabels=None, yTickLabels=None, xRotation=0,
                              yRotation=0):
         # x tick labels
@@ -267,4 +279,11 @@ class PubPyPlot(object):
         # y tick 
         if yTicks is not None:
             self.ax.get_yaxis().set_ticks(yTicks)
+                
+    def setLimit(self, xLim=None, yLim=None):
+        if xLim is not None:
+            self.ax.set_xlim(xLim)
+        if yLim is not None:
+            self.ax.set_ylim(yLim)
+
     
