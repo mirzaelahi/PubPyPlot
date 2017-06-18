@@ -56,31 +56,33 @@ class PubPyPlot(object):
     
         if ratio is None and height is None:
             self.figHeight = self.figWidth * self.goldenMean
-        #else:
-        #    self.figHeight = height
+        elif height is not None and width is not None:
+            self.figHeight = height
+            self.figWidth = width
             
         self.plotCount = 0
         self.totalPlotProvision = 6   
-        self.labelFontSize = 6.5
-        self.legendFontSize = self.labelFontSize - 0.3
-        self.tickFontSize = self.labelFontSize - 0.3
-        self.legend_lw = 2.5/2
+        self.labelFontSize = 6.0
+        self.legendFontSize = self.labelFontSize
+        self.tickFontSize = self.labelFontSize
+        self.legend_lw = 2.5/2.1
         self.lw = 2.5*np.ones(self.totalPlotProvision)
-        self.axesColor = '#424242'
-        self.majorTickWidth = 0.5
-        self.majorTickLength = 3
-        self.minorTickLength = 2.5
-        self.axesLineWidth = 0.5
-        self.axesLabelpad = 4
+        self.axesColor = '#000000'
+        self.majorTickWidth = 0.4
+        self.majorTickLength = 2.7
+        self.minorTickLength = self.majorTickLength * 0.7
+        self.axesLineWidth = 0.4
+        self.axesLabelpad = 1.5
+        self.tickPad = 3
         self.ls='-'
         
         self.fig = plt.figure(figsize=(self.figWidth, self.figHeight))
         self.ax = self.fig.add_subplot(111)
         
         self.legendLineLength = 2.5
-        self.legendLineWidth = 1*np.ones(self.totalPlotProvision)
+        self.legendLineWidth = 1.2*np.ones(self.totalPlotProvision)
         self.legendNumPoints = 1
-        self.legendLabelSpacing = 0.5
+        self.legendLabelSpacing = 0.1
         self.legendBorderaxespad = 0.5
         self.legendHandleTextPad = 0.5
         self.legendBorderPad = 0.4
@@ -89,11 +91,12 @@ class PubPyPlot(object):
         self.legendBbox_to_anchor = (1., 1.)
         self.markerAlpha = 1.
         self.markerEdgeWidth = 0.5*np.ones(self.totalPlotProvision)
+        self.dashes = [3, 2, 3, 2]  # 3 points on, 2 off, 3 on, 2 off
         
         
-        self.color = ['#d73027',     #red
-                             '#4575b4',     #blue
-                             '#fc8d59',     #orange
+        self.color = ['#ef1616',     #red
+                             '#0e59ac',     #blue
+                             '#567d53',     #green
                              '#fee090',     #yellow
                              '#e0f3f8',     #skyblue
                              '#91bfdb'      #lightblue
@@ -113,6 +116,7 @@ class PubPyPlot(object):
                              '#EAF5F7',     #skyblue
                              '#B7CEDC'      #lightblue
                              ]
+                             #orange fc8d59
         self.markerSize = np.zeros(self.totalPlotProvision)
         self.marker = ['o', 's', '+', 'x', '2', 'h']
         self.markevery = 1*np.ones(self.totalPlotProvision)
@@ -129,8 +133,12 @@ class PubPyPlot(object):
                       'legend.fontsize': self.legendFontSize,
                       'xtick.labelsize': self.tickFontSize,
                       'ytick.labelsize': self.tickFontSize,
-                      'axes.labelpad'  : self.axesLabelpad, 
-                      'mathtext.default': 'regular'}        
+                      'axes.labelpad'  : self.axesLabelpad,
+                      'mathtext.fontset': 'custom',
+                      'mathtext.rm': 'Arial Narrow',
+                      'mathtext.it': 'Arial Narrow',
+                      'mathtext.bf': 'Arial Narrow',
+                      'font.family' : 'Arial Narrow'}
         rcParams.update(params)
         
     def getAxis(self):
@@ -139,7 +147,7 @@ class PubPyPlot(object):
         
     def plot(self, x, y, lw=None, color=None, marker=None, ms=None,
              markevery=None, markeredgecolor=None, markerfacecolor=None, 
-                 markeredgewidth=None, ls='-', zOrder=1):
+                 markeredgewidth=None, ls='-', zOrder=1, dashes=None):
         """plot x vs y"""
         color = color or self.color[self.plotCount]
         ms = ms or self.markerSize[self.plotCount]
@@ -148,6 +156,10 @@ class PubPyPlot(object):
         markeredgecolor = markeredgecolor or self.markerEdgeColor[self.plotCount]
         markerfacecolor = markerfacecolor or self.markerFaceColor[self.plotCount]
         markeredgewidth = markeredgewidth or self.markerEdgeWidth[self.plotCount]
+        dashes = dashes or self.dashes
+        if ls == '-':
+            dashes = ''
+        
         lw = lw or self.lw[self.plotCount]
         tempPlot, = self.ax.plot(x, y, lw=lw, 
                              color=color, ms=ms, marker=marker, 
@@ -156,7 +168,8 @@ class PubPyPlot(object):
                              markerfacecolor=markerfacecolor,
                              markeredgewidth = markeredgewidth,
                              ls=ls,
-                             zorder=zOrder)
+                             zorder=zOrder,
+                             dashes = dashes)
         self.plotCount += 1
         self.plotList.append(tempPlot)
         return tempPlot
@@ -191,32 +204,35 @@ class PubPyPlot(object):
             print ('-> Saving file {0} with {1} dpi'.format(title, mdpi) )
             self.fig.savefig(title, dpi=mdpi, bbox_inches='tight')
             
-    def setLabel(self, xLabel=None, yLabel=None):
+    def setLabel(self, xLabel=None, yLabel=None, labelpad=None):
         """set labels"""
+        labelpad = labelpad or self.axesLabelpad
         if xLabel is not None:
-            self.ax.set_xlabel(xLabel)
+            self.ax.set_xlabel(xLabel, labelpad=labelpad)
         if yLabel is not None:
-            self.ax.set_ylabel(yLabel)
+            self.ax.set_ylabel(yLabel, labelpad=labelpad+1)
         
     def setTick( self, tickLength=None, tickWidth=None, majorDx=None, 
-                majorDy=None, minorDx=None, minorDy=None, tickFontsize=None ):
+                majorDy=None, minorDx=None, minorDy=None, tickFontsize=None,
+                tickPad=None):
         """modify ticks"""
         tickLength = tickLength or self.majorTickLength
         tickWidth = tickWidth or self.majorTickWidth
         tickFontsize = tickFontsize or self.tickFontSize
+        tickPad = tickPad or self.tickPad
         # Tick Size
         self.ax.xaxis.set_tick_params(length=tickLength, width=tickWidth, 
                                       labelsize=tickFontsize)
         self.ax.yaxis.set_tick_params(length=tickLength, width=tickWidth, 
                                       labelsize=tickFontsize)
-        self.ax.xaxis.set_tick_params(which='minor', length=0.7*tickLength, 
-                                      width=0.83*tickWidth)
-        self.ax.yaxis.set_tick_params(which='minor', length=0.7*tickLength, 
-                                      width=tickWidth)
+        self.ax.xaxis.set_tick_params(which='minor', length=0.5*tickLength,
+                                      width=0.8*tickWidth)
+        self.ax.yaxis.set_tick_params(which='minor', length=0.5*tickLength,
+                                      width= 0.8*tickWidth)
         self.ax.xaxis.set_tick_params(which='major', length=tickLength, 
-                                      width=0.83*tickWidth)
+                                      width=tickWidth, pad=tickPad )
         self.ax.yaxis.set_tick_params(which='major', length=tickLength, 
-                                      width=tickWidth)
+                                      width=tickWidth, pad=tickPad)
         # Major Tick location                              
         if majorDx is not None:
             # Minor Tick
@@ -236,7 +252,7 @@ class PubPyPlot(object):
             
     def legend(self, legendText,  handle=None, bbox_to_anchor=None, loc='upper right', 
                frameon=False, fancybox=False, shadow = False, ncol=1,
-               mode=None, handletextpad=None):
+               mode=None, handletextpad=None, framealpha = 1.):
         self.legendText = legendText
         handle = handle or self.plotList
         handletextpad = handletextpad or self.legendHandleTextPad
@@ -254,7 +270,8 @@ class PubPyPlot(object):
                                      mode = mode,
                                      numpoints=self.legendNumPoints, 
                                      handlelength=self.legendLineLength,
-                                     handleheight=self.legendHandleHeight)
+                                     handleheight=self.legendHandleHeight,
+                                     framealpha= framealpha)
                                      
         self.legend.get_frame().set_linewidth(self.axesLineWidth)
         self.legend.get_frame().set_edgecolor(self.axesColor)
