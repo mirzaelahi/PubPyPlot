@@ -17,11 +17,11 @@ pub.markevery= [4 , 7, 5]
 pub.lw = [1, 1, 2]
 pub.markerSize = [4, 4, 5]
 
-x = np.arange(1, 100, 2)
-x1 = np.arange(1, 51, 2)
-y = np.arange(1, 100, 2)
-y1 = np.arange(100, 1, -2)
-y2 = np.arange(50, 100, 2)
+x = np.arange(1, 100, 1)
+x1 = np.arange(1, 51, 1)
+y = np.arange(1, 100, 1)
+y1 = np.arange(100, 1, -1)
+y2 = np.arange(50, 100, 1)
 
 pub.plot(x,y)
 pub.plot(x1,y2)
