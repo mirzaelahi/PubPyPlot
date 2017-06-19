@@ -75,9 +75,8 @@ class PubPyPlot(object):
         self.axesLabelpad = 1.5
         self.tickPad = 3
         self.ls='-'
-        
-        self.fig = plt.figure(figsize=(self.figWidth, self.figHeight))
-        self.ax = self.fig.add_subplot(111)
+        self.fontFamily = 'serif'
+        self.font = 'Arial Narrow'
         
         self.legendLineLength = 2.5
         self.legendLineWidth = 1.2*np.ones(self.totalPlotProvision)
@@ -123,7 +122,19 @@ class PubPyPlot(object):
         
         self.plotList = []
         
+        
+        
+        # INITIATE FIGURE
+        self.fig = plt.figure(figsize=(self.figWidth, self.figHeight))
+        self.ax = self.fig.add_subplot(111)
         #self.fig.subplots_adjust(left=0.2, bottom=0.2)
+        
+        # SET TICK FONT // TODO
+        for label in self.ax.get_xticklabels():
+            label.set_fontproperties(self.font)
+
+        for label in self.ax.get_yticklabels():
+            label.set_fontproperties(self.font)
         self.updateRcParams()
         
     def updateRcParams(self):
@@ -134,11 +145,13 @@ class PubPyPlot(object):
                       'xtick.labelsize': self.tickFontSize,
                       'ytick.labelsize': self.tickFontSize,
                       'axes.labelpad'  : self.axesLabelpad,
+                      'font.family' : self.fontFamily,
+                      'font.serif' : self.font,
                       'mathtext.fontset': 'custom',
-                      'mathtext.rm': 'Arial Narrow',
-                      'mathtext.it': 'Arial Narrow',
-                      'mathtext.bf': 'Arial Narrow',
-                      'font.family' : 'Arial Narrow'}
+                      'mathtext.rm': self.font,
+                      'mathtext.it': self.font,
+                      'mathtext.bf': self.font,
+                      'font.family' : self.font}
         rcParams.update(params)
         
     def getAxis(self):
