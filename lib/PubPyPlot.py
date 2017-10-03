@@ -95,17 +95,19 @@ class PubPyPlot(object):
         self.markerEdgeWidth = 0.5*np.ones(self.totalPlotProvision)
         self.dashes = [3, 2, 3, 2]  # 3 points on, 2 off, 3 on, 2 off
         self.isUnicodeMinus = False
+        self.legendMarkerSize = 2
 
 
         self.color = ['#ef1616',     #red
                              '#0e59ac',     #blue
-                             '#567d53',     #green
+                             '#009f73',     #green
                              '#fee090',     #yellow
                              '#e0f3f8',     #skyblue
                              '#91bfdb'      #lightblue
                              ]
-        self.markerEdgeColor = ['#8A201A',     #red
+        self.markerEdgeColor = ['#8A201A',  #red
                              '#2A476D',     #blue
+                             '#00745b',  #green
                              '#A9603E',     #orange
                              '#fee090',     #yellow
                              '#e0f3f8',     #skyblue
@@ -113,8 +115,9 @@ class PubPyPlot(object):
                              ]
 
         self.markerFaceColor=['#D68480',     #red
-                             '#8196B1',     #blue
-                             '#FEBFA1',     #orange
+                             '#8196B1',     #blue,
+                              '#009f73',    #green
+                             '#ea9465',     #orange
                              '#FEE8AE',     #yellow
                              '#EAF5F7',     #skyblue
                              '#B7CEDC'      #lightblue
@@ -302,7 +305,7 @@ class PubPyPlot(object):
     def legend(self, legendText,  handle=None, bbox_to_anchor=None,
             loc='upper right', frameon=False, fancybox=False,
                 shadow = False, ncol=1, mode=None, handletextpad=None,
-                    framealpha = 1., columnspacing=None):
+                    framealpha = 1., columnspacing=None, markerscale= 1):
         """ Legend properties setter """
         self.legendText = legendText
         handle = handle or self.plotList
@@ -325,7 +328,8 @@ class PubPyPlot(object):
                                      handleheight=self.legendHandleHeight,
                                      framealpha= framealpha,
                                      prop=prop,
-                                     columnspacing= columnspacing)
+                                     columnspacing= columnspacing,
+                                     markerscale=markerscale)
 
         self.legend.get_frame().set_linewidth(self.axesLineWidth)
         self.legend.get_frame().set_edgecolor(self.axesColor)
@@ -334,6 +338,8 @@ class PubPyPlot(object):
             legobj.set_linewidth(self.legendLineWidth[tempCount])
             tempCount += 1
         return self.legend
+
+
     def setTickLabel(self, xTickLabels=None, yTickLabels=None, xRotation=0,
                              yRotation=0):
         """ tick text setter  """
