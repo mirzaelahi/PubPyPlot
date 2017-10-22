@@ -36,7 +36,7 @@ import argparse
 import scipy.io as sio
 
 class PubPyPlot(object):
-    def __init__(self, height = None, width = None, ratio=None):
+    def __init__(self, height = None, width = None, ratio=None, type=None):
         """constructor of the class"""
         self.goldenMean = ( np.sqrt(5) - 1.0 )/2.0
         if ratio==21:
@@ -133,7 +133,11 @@ class PubPyPlot(object):
 
         # INITIATE FIGURE
         self.fig = plt.figure(figsize=(self.figWidth, self.figHeight))
-        self.ax = self.fig.add_subplot(111)
+        if type is not None: # TODO
+            if type == 'polar':
+                self.ax = self.fig.add_subplot(111, polar=True)
+        else:
+            self.ax = self.fig.add_subplot(111)
         #self.fig.subplots_adjust(left=0.2, bottom=0.2)
 
         # SET TICK FONT // TODO
@@ -166,7 +170,9 @@ class PubPyPlot(object):
                       'pdf.fonttype' : True,
                           'text.usetex' : False,
                           'text.latex.unicode' : True,
-                              'legend.numpoints'     : 1}
+                              'legend.numpoints'     : 1,
+                              'pdf.fonttype' : 42,
+                              'ps.fonttype' : 42}
         rcParams.update(params)
 
     def getAxis(self):
@@ -365,12 +371,14 @@ class PubPyPlot(object):
             self.ax.set_xlim(xLim)
         if yLim is not None:
             self.ax.set_ylim(yLim)
+
     def plotCountModifier(self, prop, plotCount):
         """ utility function (private)  """
         if len(prop) <= plotCount :
             return plotCount % len(prop)
         else:
             return plotCount
+
     def Line2P(self, x, y, xlims):
         """   """
         xrange = np.arange(xlims[0],xlims[1],0.1)
