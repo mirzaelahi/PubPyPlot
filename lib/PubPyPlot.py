@@ -152,6 +152,7 @@ class PubPyPlot(object):
 
         params = {'axes.labelsize': self.labelFontSize,
                       'axes.titlesize': self.labelFontSize,
+                      'axes.labelsize': self.labelFontSize,
                       'font.size': self.labelFontSize,
                       'legend.fontsize': self.legendFontSize,
                       'xtick.labelsize': self.tickFontSize,
@@ -168,11 +169,11 @@ class PubPyPlot(object):
                       'axes.unicode_minus' : self.isUnicodeMinus,
                       'text.latex.preamble' : '\usepackage{color}',
                       'pdf.fonttype' : True,
-                          'text.usetex' : False,
-                          'text.latex.unicode' : True,
-                              'legend.numpoints'     : 1,
-                              'pdf.fonttype' : 42,
-                              'ps.fonttype' : 42}
+                      'text.usetex' : False,
+                      'text.latex.unicode' : True,
+                      'legend.numpoints'     : 1,
+                      'pdf.fonttype' : 42,
+                      'ps.fonttype' : 42}
         rcParams.update(params)
 
     def getAxis(self):
@@ -247,10 +248,28 @@ class PubPyPlot(object):
 
         ax.xaxis.set_ticks_position('bottom')
         ax.yaxis.set_ticks_position('left')
-
-        for axis in [ax.xaxis, ax.yaxis]:
-            axis.set_tick_params(direction='in', color=self.axesColor)
-
+        xaxis = ax.get_xaxis()
+        yaxis = ax.get_yaxis()
+        self.ax.xaxis.set_tick_params(which='major',
+                                        length=self.majorTickLength,
+                                        width=self.majorTickWidth,
+                                        pad=self.tickPad,
+                                        labelsize=self.tickFontSize,
+                                        direction='in')
+        self.ax.yaxis.set_tick_params(which='major',
+                                        length=self.majorTickLength,
+                                        width=self.majorTickWidth,
+                                        labelsize=self.tickFontSize,
+                                        pad=self.tickPad,
+                                        direction='in')
+        self.ax.xaxis.set_tick_params(which='minor',
+                                        length=0.5*self.majorTickLength,
+                                        width=0.8*self.majorTickWidth,
+                                        direction='in')
+        self.ax.yaxis.set_tick_params(which='minor',
+                                        length=0.5*self.majorTickLength,
+                                        width= 0.8*self.majorTickWidth,
+                                        direction='in')
         return ax
 
     def savePlot( self, file_name, formats = ['png'], mdpi=600 ):
@@ -266,9 +285,11 @@ class PubPyPlot(object):
         xlabelpad = xlabelpad or self.xAxesLabelpad
         ylabelpad = ylabelpad or self.yAxesLabelpad
         if xLabel is not None:
-            self.ax.set_xlabel(xLabel, labelpad=xlabelpad)
+            self.ax.set_xlabel(xLabel, labelpad=xlabelpad,
+                                fontsize=self.labelFontSize)
         if yLabel is not None:
-            self.ax.set_ylabel(yLabel, labelpad=ylabelpad)
+            self.ax.set_ylabel(yLabel, labelpad=ylabelpad,
+                                fontsize=self.labelFontSize)
 
     def setTick( self, tickLength=None, tickWidth=None, majorDx=None,
                 majorDy=None, minorDx=None, minorDy=None, tickFontsize=None,
@@ -279,18 +300,20 @@ class PubPyPlot(object):
         tickFontsize = tickFontsize or self.tickFontSize
         tickPad = tickPad or self.tickPad
         # Tick Size
-        self.ax.xaxis.set_tick_params(length=tickLength, width=tickWidth,
-                                      labelsize=tickFontsize)
-        self.ax.yaxis.set_tick_params(length=tickLength, width=tickWidth,
-                                      labelsize=tickFontsize)
         self.ax.xaxis.set_tick_params(which='minor', length=0.5*tickLength,
-                                      width=0.8*tickWidth)
+                                      width=0.8*tickWidth,
+                                      labelsize=tickFontsize,
+                                      direction='in')
         self.ax.yaxis.set_tick_params(which='minor', length=0.5*tickLength,
-                                      width= 0.8*tickWidth)
+                                      width= 0.8*tickWidth,
+                                      labelsize=tickFontsize,
+                                      direction='in')
         self.ax.xaxis.set_tick_params(which='major', length=tickLength,
-                                      width=tickWidth, pad=tickPad )
+                                      width=tickWidth, pad=tickPad,
+                                      direction='in')
         self.ax.yaxis.set_tick_params(which='major', length=tickLength,
-                                      width=tickWidth, pad=tickPad)
+                                      width=tickWidth, pad=tickPad,
+                                      direction='in')
         # Major Tick location
         if majorDx is not None:
             # Minor Tick
