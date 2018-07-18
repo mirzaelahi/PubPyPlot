@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
 from matplotlib import animation
+import matplotlib.ticker
 
 import numpy as np
 #from math import pi, sqrt, sin, cos, tan
@@ -59,7 +60,7 @@ class PubPyPlot(object):
         elif height is not None and width is not None:
             self.figHeight = height
             self.figWidth = width
-
+        self.type = type
         self.plotCount = 0
         self.totalPlotProvision = 6
         self.labelFontSize = 7.0
@@ -96,6 +97,9 @@ class PubPyPlot(object):
         self.dashes = [3, 2, 3, 2]  # 3 points on, 2 off, 3 on, 2 off
         self.isUnicodeMinus = False
         self.legendMarkerSize = 2
+        
+        self.thetaPad = -5
+        self.rPad = 0
 
 
         self.color = ['#ef1616',     #red
@@ -128,13 +132,16 @@ class PubPyPlot(object):
         self.markevery = 1*np.ones(self.totalPlotProvision)
 
         self.plotList = []
+        
+        # helping constants
+        self.degreesymbol = u"\u00b0"
 
 
 
         # INITIATE FIGURE
         self.fig = plt.figure(figsize=(self.figWidth, self.figHeight))
-        if type is not None: # TODO
-            if type == 'polar':
+        if self.type is not None: # TODO
+            if self.type == 'polar':
                 self.ax = self.fig.add_subplot(111, polar=True)
         else:
             self.ax = self.fig.add_subplot(111)
@@ -167,7 +174,7 @@ class PubPyPlot(object):
                       'font.family' : self.font,
                       'font.weight' : self.fontWeight,
                       'axes.unicode_minus' : self.isUnicodeMinus,
-                      'text.latex.preamble' : '\usepackage{color}',
+                     # 'text.latex.preamble' : '\usepackage{color}',
                       'pdf.fonttype' : True,
                       'text.usetex' : False,
                       'text.latex.unicode' : True,
@@ -241,35 +248,41 @@ class PubPyPlot(object):
         """
         #for spine in ['top', 'right']:
         #    ax.spines[spine].set_visible(False)
-
-        for spine in ['left', 'bottom', 'top', 'right']:
-            ax.spines[spine].set_color(self.axesColor)
-            ax.spines[spine].set_linewidth(self.axesLineWidth)
-
-        ax.xaxis.set_ticks_position('bottom')
-        ax.yaxis.set_ticks_position('left')
-        xaxis = ax.get_xaxis()
-        yaxis = ax.get_yaxis()
-        self.ax.xaxis.set_tick_params(which='major',
-                                        length=self.majorTickLength,
-                                        width=self.majorTickWidth,
-                                        pad=self.tickPad,
-                                        labelsize=self.tickFontSize,
-                                        direction='in')
-        self.ax.yaxis.set_tick_params(which='major',
-                                        length=self.majorTickLength,
-                                        width=self.majorTickWidth,
-                                        labelsize=self.tickFontSize,
-                                        pad=self.tickPad,
-                                        direction='in')
-        self.ax.xaxis.set_tick_params(which='minor',
-                                        length=0.5*self.majorTickLength,
-                                        width=0.8*self.majorTickWidth,
-                                        direction='in')
-        self.ax.yaxis.set_tick_params(which='minor',
-                                        length=0.5*self.majorTickLength,
-                                        width= 0.8*self.majorTickWidth,
-                                        direction='in')
+        # polar plot
+        if self.type == 'polar':
+            self.ax.xaxis.set_tick_params(pad=self.thetaPad)
+            self.ax.yaxis.set_tick_params(pad=self.rPad)
+        # anything else
+        else:
+            for spine in ['left', 'bottom', 'top', 'right']:
+                ax.spines[spine].set_color(self.axesColor)
+                ax.spines[spine].set_linewidth(self.axesLineWidth)
+    
+            ax.xaxis.set_ticks_position('bottom')
+            ax.yaxis.set_ticks_position('left')
+            xaxis = ax.get_xaxis()
+            yaxis = ax.get_yaxis()
+            self.ax.xaxis.set_tick_params(which='major',
+                                            length=self.majorTickLength,
+                                            width=self.majorTickWidth,
+                                            pad=self.tickPad,
+                                            labelsize=self.tickFontSize,
+                                            direction='in')
+            self.ax.yaxis.set_tick_params(which='major',
+                                            length=self.majorTickLength,
+                                            width=self.majorTickWidth,
+                                            labelsize=self.tickFontSize,
+                                            pad=self.tickPad,
+                                            direction='in')
+            self.ax.xaxis.set_tick_params(which='minor',
+                                            length=0.5*self.majorTickLength,
+                                            width=0.8*self.majorTickWidth,
+                                            direction='in')
+            self.ax.yaxis.set_tick_params(which='minor',
+                                            length=0.5*self.majorTickLength,
+                                            width= 0.8*self.majorTickWidth,
+                                            direction='in')
+            # end if else
         return ax
 
     def savePlot( self, file_name, formats = ['png'], mdpi=600 ):
@@ -291,7 +304,7 @@ class PubPyPlot(object):
             self.ax.set_ylabel(yLabel, labelpad=ylabelpad,
                                 fontsize=self.labelFontSize)
 
-    def setTick( self, tickLength=None, tickWidth=None, majorDx=None,
+    def setTickDim( self, tickLength=None, tickWidth=None, majorDx=None,
                 majorDy=None, minorDx=None, minorDy=None, tickFontsize=None,
                 tickPad=None):
         """modify ticks"""
@@ -379,21 +392,49 @@ class PubPyPlot(object):
         if yTickLabels is not None:
             self.ax.set_yticklabels(yTickLabels, rotation=yRotation)
 
-    def setTicks(self, xTicks=None, yTicks=None):
+    def setTicks(self, xTicks=None, yTicks=None, rTicks=None, thetaTicks=None):
         """ tick position setter  """
-        # x tick
-        if xTicks is not None:
-            self.ax.get_xaxis().set_ticks(xTicks)
-        # y tick
-        if yTicks is not None:
-            self.ax.get_yaxis().set_ticks(yTicks)
+        # polar plot
+        if self.type == 'polar':
+            self.ax.set_rgrids(rTicks)
+            self.ax.set_thetagrids(thetaTicks)
+        # anything else
+        else:
+            # x tick
+            if xTicks is not None:
+                self.ax.get_xaxis().set_ticks(xTicks)
+            # y tick
+            if yTicks is not None:
+                self.ax.get_yaxis().set_ticks(yTicks)
 
-    def setLimit(self, xLim=None, yLim=None):
+    def setLimit(self, xLim=None, yLim=None, thetaLim=None, rMax=None):
         """ axis limit setter  """
-        if xLim is not None:
-            self.ax.set_xlim(xLim)
-        if yLim is not None:
-            self.ax.set_ylim(yLim)
+        # polar plot
+        if self.type == 'polar':
+            if thetaLim is not None:
+                self.ax.set_thetamin(thetaLim[0])   # in degrees
+                self.ax.set_thetamax(thetaLim[1])   # in degrees
+            if rMax is not None:
+                self.ax.set_rmax(rMax)
+        # anything else
+        else:
+            if xLim is not None:
+                self.ax.set_xlim(xLim)
+            if yLim is not None:
+                self.ax.set_ylim(yLim)
+        
+            
+    def setLogScale(self, isX=False, isY=False):
+        """ log axis setter  """
+        locmin = matplotlib.ticker.LogLocator( base=10.0,
+                                              subs=(0.2,0.4,0.6,0.8),
+                                              numticks=12 )
+        if isX:
+            self.ax.set_xscale('log')    # x axis log
+            self.ax.xaxis.set_minor_locator(locmin)
+        if isY:
+            self.ax.set_yscale('log')    # y axis log
+            self.ax.yaxis.set_minor_locator(locmin)
 
     def plotCountModifier(self, prop, plotCount):
         """ utility function (private)  """
