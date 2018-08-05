@@ -25,8 +25,6 @@ from matplotlib import animation
 import matplotlib.ticker
 
 import numpy as np
-#from math import pi, sqrt, sin, cos, tan
-#from sets import Set
 import pickle
 import sys
 import os
@@ -39,6 +37,7 @@ import scipy.io as sio
 class PubPyPlot(object):
     def __init__(self, height = None, width = None, ratio=None, type=None):
         """constructor of the class"""
+        
         self.goldenMean = ( np.sqrt(5) - 1.0 )/2.0
         if ratio==21:
             self.figWidth = 3.39
@@ -60,12 +59,14 @@ class PubPyPlot(object):
         elif height is not None and width is not None:
             self.figHeight = height
             self.figWidth = width
+        
+        # parameters
         self.type = type
         self.plotCount = 0
         self.totalPlotProvision = 6
-        self.labelFontSize = 7.0
-        self.legendFontSize = self.labelFontSize-0.5
-        self.tickFontSize = self.labelFontSize
+        self.labelFontSize = 8.0
+        self.legendFontSize = self.labelFontSize - 0.5
+        self.tickFontSize = self.labelFontSize - 0.5
         self.legend_lw = 2.5/2.1
         self.lw = 2.5*np.ones(self.totalPlotProvision)
         self.axesColor = '#000000'
@@ -82,7 +83,7 @@ class PubPyPlot(object):
         self.legendFont = self.font
         self.fontWeight = 'medium'
 
-        self.legendLineLength = 2.5
+        self.legendLineLength = 2.0
         self.legendLineWidth = 1.2*np.ones(self.totalPlotProvision)
         self.legendNumPoints = 1
         self.legendLabelSpacing = 0.1
@@ -93,40 +94,52 @@ class PubPyPlot(object):
         self.legendHandleHeight = 0.5
         self.legendBbox_to_anchor = (1., 1.)
         self.markerAlpha = 1.
-        self.markerEdgeWidth = 0.5*np.ones(self.totalPlotProvision)
+        self.markerEdgeWidth = 0.5 * np.ones(self.totalPlotProvision)
         self.dashes = [3, 2, 3, 2]  # 3 points on, 2 off, 3 on, 2 off
         self.isUnicodeMinus = False
         self.legendMarkerSize = 2
         
         self.thetaPad = -5
         self.rPad = 0
+        
+        # color helper
+        self.C_RED =        '#ef1616'
+        self.C_BLUE =       '#0e59ac'
+        self.C_GREEN =      '#009f73'
+        self.C_YELLOW =     '#ebdf3d'
+        self.C_CYAN =       '#49d5e1'
+        self.C_LIGHTBLUE =  '#9dc5f7'
+        
+        self.C_DEEPRED =    '#8A201A'
+        self.C_DEEPBLUE =   '#2A476D'
+        self.C_DEEPGREEN =  '#00745b'
+        self.C_DEEPYELLOW = '#c5ba41'
+        self.C_DEEPCYAN =   '#47bac5'
+        self.C_DEEPLIGHTBLUE = '#95b4d8'
 
-
-        self.color = ['#ef1616',     #red
-                             '#0e59ac',     #blue
-                             '#009f73',     #green
-                             '#fee090',     #yellow
-                             '#e0f3f8',     #skyblue
-                             '#91bfdb'      #lightblue
-                             ]
-        self.markerEdgeColor = ['#8A201A',  #red
-                             '#2A476D',     #blue
-                             '#00745b',  #green
-                             '#A9603E',     #orange
-                             '#fee090',     #yellow
-                             '#e0f3f8',     #skyblue
-                             '#91bfdb'      #lightblue
-                             ]
-
-        self.markerFaceColor=['#D68480',     #red
-                             '#8196B1',     #blue,
-                              '#009f73',    #green
-                             '#ea9465',     #orange
-                             '#FEE8AE',     #yellow
-                             '#EAF5F7',     #skyblue
-                             '#B7CEDC'      #lightblue
-                             ]
-                         #orange fc8d59
+        # default color serial
+        self.color = [self.C_RED,
+                      self.C_BLUE,
+                      self.C_GREEN,
+                      self.C_YELLOW,
+                      self.C_CYAN,
+                      self.C_LIGHTBLUE ]
+        
+        # default markerEdge color serial
+        self.markerEdgeColor = [self.C_DEEPRED,
+                                self.C_DEEPBLUE,
+                                self.C_DEEPGREEN,
+                                self.C_DEEPYELLOW,
+                                self.C_DEEPCYAN,
+                                self.C_DEEPLIGHTBLUE ]
+        # default markerFace color serial
+        self.markerFaceColor=[self.C_RED,
+                              self.C_BLUE,
+                              self.C_GREEN,
+                              self.C_YELLOW,
+                              self.C_CYAN,
+                              self.C_LIGHTBLUE ]
+        
         self.markerSize = np.zeros(self.totalPlotProvision)
         self.marker = ['o', 's', '+', 'x', '2', 'h']
         self.markevery = 1*np.ones(self.totalPlotProvision)
@@ -135,8 +148,6 @@ class PubPyPlot(object):
         
         # helping constants
         self.degreesymbol = u"\u00b0"
-
-
 
         # INITIATE FIGURE
         self.fig = plt.figure(figsize=(self.figWidth, self.figHeight))
@@ -154,8 +165,11 @@ class PubPyPlot(object):
         for label in self.ax.get_yticklabels():
             label.set_fontproperties(self.font)
         self.updateRcParams()
+        
+        self.formatAxes(self.ax)
 
     def updateRcParams(self):
+        """ updating Rc params/plot settings """
 
         params = {'axes.labelsize': self.labelFontSize,
                       'axes.titlesize': self.labelFontSize,
@@ -185,13 +199,15 @@ class PubPyPlot(object):
 
     def getAxis(self):
         """returns axis"""
+        
         return self.ax
 
     def plot(self, x, y, lw=None, color=None, marker=None, ms=None,
              markevery=None, markeredgecolor=None, markerfacecolor=None,
-                 markeredgewidth=None, ls='-', zOrder=1, dashes=None,
+                 markeredgewidth=None, ls='-', zOrder=10, dashes=None,
                     onlyMarker=False):
         """plot x vs y"""
+        
         color = color or self.color[self.plotCountModifier(self.color,
                                         self.plotCount)]
         ms = ms or self.markerSize[self.plotCountModifier(self.markerSize,
@@ -237,6 +253,7 @@ class PubPyPlot(object):
         self.plotCount += 1
         self.plotList.append(tempPlot)
         return tempPlot
+    
     def show(self):
         """show the plot"""
         plt.show()
@@ -287,6 +304,7 @@ class PubPyPlot(object):
 
     def savePlot( self, file_name, formats = ['png'], mdpi=600 ):
         """saveplots"""
+        
         for format in formats:
             title = '{0}.{1}'.format(file_name, format)
             print ('-> Saving file {0} with {1} dpi'.format(title, mdpi) )
@@ -295,6 +313,7 @@ class PubPyPlot(object):
     def setLabel(self, xLabel=None, yLabel=None, xlabelpad=None,
                         ylabelpad=None):
         """set labels"""
+        
         xlabelpad = xlabelpad or self.xAxesLabelpad
         ylabelpad = ylabelpad or self.yAxesLabelpad
         if xLabel is not None:
@@ -308,6 +327,7 @@ class PubPyPlot(object):
                 majorDy=None, minorDx=None, minorDy=None, tickFontsize=None,
                 tickPad=None):
         """modify ticks"""
+        
         tickLength = tickLength or self.majorTickLength
         tickWidth = tickWidth or self.majorTickWidth
         tickFontsize = tickFontsize or self.tickFontSize
@@ -349,6 +369,7 @@ class PubPyPlot(object):
                 shadow = False, ncol=1, mode=None, handletextpad=None,
                     framealpha = 1., columnspacing=None, markerscale= 1):
         """ Legend properties setter """
+        
         self.legendText = legendText
         handle = handle or self.plotList
         handletextpad = handletextpad or self.legendHandleTextPad
@@ -385,6 +406,7 @@ class PubPyPlot(object):
     def setTickLabel(self, xTickLabels=None, yTickLabels=None, xRotation=0,
                              yRotation=0):
         """ tick text setter  """
+        
         # x tick labels
         if xTickLabels is not None:
             self.ax.set_xticklabels(xTickLabels, rotation=xRotation)
@@ -394,6 +416,7 @@ class PubPyPlot(object):
 
     def setTicks(self, xTicks=None, yTicks=None, rTicks=None, thetaTicks=None):
         """ tick position setter  """
+        
         # polar plot
         if self.type == 'polar':
             self.ax.set_rgrids(rTicks)
@@ -409,6 +432,7 @@ class PubPyPlot(object):
 
     def setLimit(self, xLim=None, yLim=None, thetaLim=None, rMax=None):
         """ axis limit setter  """
+        
         # polar plot
         if self.type == 'polar':
             if thetaLim is not None:
@@ -426,6 +450,7 @@ class PubPyPlot(object):
             
     def setLogScale(self, isX=False, isY=False):
         """ log axis setter  """
+        
         locmin = matplotlib.ticker.LogLocator( base=10.0,
                                               subs=(0.2,0.4,0.6,0.8),
                                               numticks=12 )
@@ -438,14 +463,16 @@ class PubPyPlot(object):
 
     def plotCountModifier(self, prop, plotCount):
         """ utility function (private)  """
+        
         if len(prop) <= plotCount :
             return plotCount % len(prop)
         else:
             return plotCount
 
     def Line2P(self, x, y, xlims):
-        """   """
-        xrange = np.arange(xlims[0],xlims[1],0.1)
-        A = np.vstack([x, np.ones(len(x))]).T
-        k, b = np.linalg.lstsq(A, y)[0]
-        return xrange, k*xrange + b
+        """ line points between two points """
+        
+        xrange = np.arange(xlims[0], xlims[1], 0.1)
+        A = np.vstack( [x, np.ones(len(x))] ).T
+        k, b = np.linalg.lstsq( A, y )[0]
+        return xrange, k * xrange + b
